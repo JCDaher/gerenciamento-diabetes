@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Diabetes Tipo 1</title>
+    <style>
+        /* ... (estilos anteriores permanecem os mesmos) ... */
+        .message {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gerenciamento de Diabetes Tipo 1</h1>
+        
+        <h2>Novo Registro</h2>
+        <form id="diabetesForm">
+            <!-- ... (campos do formulário permanecem os mesmos) ... -->
+            <button type="submit">Salvar Registro</button>
+        </form>
+        <div id="message" class="message" style="display: none;"></div>
+
+        <h2>Registros</h2>
+        <table id="registrosTable">
+            <!-- ... (estrutura da tabela permanece a mesma) ... -->
+        </table>
+    </div>
+
+    <script>
+        let registros = JSON.parse(localStorage.getItem('registrosDiabetes')) || [];
+
+        function salvarRegistro(evento) {
+            evento.preventDefault();
+            
+            const novoRegistro = {
+                data: document.getElementById('data').value,
+                hba1c: document.getElementById('hba1c').value,
+                insulinaBasal: document.getElementById('insulinaBasal').value,
+                insulinaRapida: document.getElementById('insulinaRapida').value,
+                intercorrencias: document.getElementById('intercorrencias').value
+            };
+
+            registros.push(novoRegistro);
+            localStorage.setItem('registrosDiabetes', JSON.stringify(registros));
+            
+            atualizarTabela();
+            document.getElementById('diabetesForm').reset();
+            
+            mostrarMensagem('Registro salvo com sucesso!', 'success');
+        }
+
+        function atualizarTabela() {
+            const tbody = document.querySelector('#registrosTable tbody');
+            tbody.innerHTML = '';
+            
+            registros.forEach(registro => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${registro.data}</td>
+                    <td>${registro.hba1c}</td>
+                    <td>${registro.insulinaBasal || '-'}</td>
+                    <td>${registro.insulinaRapida || '-'}</td>
+                    <td>${registro.intercorrencias || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function mostrarMensagem(texto, tipo) {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = texto;
+            messageElement.className = `message ${tipo}`;
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+
+        document.getElementById('diabetesForm').addEventListener('submit', salvarRegistro);
+        atualizarTabela();
+    </script>
+</body>
+</html>
