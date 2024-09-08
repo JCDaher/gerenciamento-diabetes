@@ -5,7 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciamento de Diabetes Tipo 1</title>
     <style>
-        /* ... (estilos anteriores permanecem os mesmos) ... */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"], input[type="date"], input[type="month"], select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
         .message {
             padding: 10px;
             margin-top: 10px;
@@ -22,25 +76,104 @@
     <div class="container">
         <h1>Gerenciamento de Diabetes Tipo 1</h1>
         
+        <h2>Dados do Paciente</h2>
+        <form id="patientForm">
+            <div class="form-group">
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" required>
+            </div>
+            <div class="form-group">
+                <label for="sexo">Sexo:</label>
+                <select id="sexo" required>
+                    <option value="">Selecione</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Feminino">Feminino</option>
+                    <option value="Outro">Outro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="dataNascimento">Data de Nascimento:</label>
+                <input type="date" id="dataNascimento" required>
+            </div>
+            <div class="form-group">
+                <label for="dataDiagnostico">Mês e Ano de Diagnóstico:</label>
+                <input type="month" id="dataDiagnostico" required>
+            </div>
+            <button type="submit">Salvar Dados do Paciente</button>
+        </form>
+        <div id="patientMessage" class="message" style="display: none;"></div>
+
         <h2>Novo Registro</h2>
         <form id="diabetesForm">
-            <!-- ... (campos do formulário permanecem os mesmos) ... -->
+            <div class="form-group">
+                <label for="data">Data:</label>
+                <input type="date" id="data" required>
+            </div>
+            <div class="form-group">
+                <label for="hba1c">HbA1c (%):</label>
+                <input type="number" id="hba1c" step="0.1" required>
+            </div>
+            <div class="form-group">
+                <label for="insulinaBasal">Dose de Insulina Basal (unidades):</label>
+                <input type="number" id="insulinaBasal" step="0.1">
+            </div>
+            <div class="form-group">
+                <label for="insulinaRapida">Dose de Insulina de Ação Rápida (unidades):</label>
+                <input type="number" id="insulinaRapida" step="0.1">
+            </div>
+            <div class="form-group">
+                <label for="intercorrencias">Intercorrências Médicas:</label>
+                <textarea id="intercorrencias"></textarea>
+            </div>
             <button type="submit">Salvar Registro</button>
         </form>
         <div id="message" class="message" style="display: none;"></div>
 
         <h2>Registros</h2>
         <table id="registrosTable">
-            <!-- ... (estrutura da tabela permanece a mesma) ... -->
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>HbA1c</th>
+                    <th>Insulina Basal</th>
+                    <th>Insulina Rápida</th>
+                    <th>Intercorrências</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Os registros serão inseridos aqui -->
+            </tbody>
         </table>
     </div>
 
     <script>
+        let patientData = JSON.parse(localStorage.getItem('patientData')) || null;
         let registros = JSON.parse(localStorage.getItem('registrosDiabetes')) || [];
+
+        function salvarDadosPaciente(evento) {
+            evento.preventDefault();
+            
+            patientData = {
+                nome: document.getElementById('nome').value,
+                sexo: document.getElementById('sexo').value,
+                dataNascimento: document.getElementById('dataNascimento').value,
+                dataDiagnostico: document.getElementById('dataDiagnostico').value
+            };
+
+            localStorage.setItem('patientData', JSON.stringify(patientData));
+            mostrarMensagem('Dados do paciente salvos com sucesso!', 'success', 'patientMessage');
+            document.getElementById('patientForm').style.display = 'none';
+            document.getElementById('diabetesForm').style.display = 'block';
+        }
 
         function salvarRegistro(evento) {
             evento.preventDefault();
             
+            if (!patientData) {
+                alert('Por favor, preencha os dados do paciente primeiro.');
+                return;
+            }
+
             const novoRegistro = {
                 data: document.getElementById('data').value,
                 hba1c: document.getElementById('hba1c').value,
@@ -55,7 +188,7 @@
             atualizarTabela();
             document.getElementById('diabetesForm').reset();
             
-            mostrarMensagem('Registro salvo com sucesso!', 'success');
+            mostrarMensagem('Registro salvo com sucesso!', 'success', 'message');
         }
 
         function atualizarTabela() {
@@ -75,8 +208,8 @@
             });
         }
 
-        function mostrarMensagem(texto, tipo) {
-            const messageElement = document.getElementById('message');
+        function mostrarMensagem(texto, tipo, elementId) {
+            const messageElement = document.getElementById(elementId);
             messageElement.textContent = texto;
             messageElement.className = `message ${tipo}`;
             messageElement.style.display = 'block';
@@ -85,8 +218,26 @@
             }, 3000);
         }
 
-        document.getElementById('diabetesForm').addEventListener('submit', salvarRegistro);
-        atualizarTabela();
+        document.addEventListener('DOMContentLoaded', function() {
+            const patientForm = document.getElementById('patientForm');
+            const diabetesForm = document.getElementById('diabetesForm');
+
+            if (patientData) {
+                document.getElementById('nome').value = patientData.nome;
+                document.getElementById('sexo').value = patientData.sexo;
+                document.getElementById('dataNascimento').value = patientData.dataNascimento;
+                document.getElementById('dataDiagnostico').value = patientData.dataDiagnostico;
+                patientForm.style.display = 'none';
+                diabetesForm.style.display = 'block';
+            } else {
+                patientForm.style.display = 'block';
+                diabetesForm.style.display = 'none';
+            }
+
+            patientForm.addEventListener('submit', salvarDadosPaciente);
+            diabetesForm.addEventListener('submit', salvarRegistro);
+            atualizarTabela();
+        });
     </script>
 </body>
 </html>
